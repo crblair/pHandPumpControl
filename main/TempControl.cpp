@@ -228,8 +228,8 @@ void updateTempControl() {
 
     // Only consider valid temperature readings
     if (tempCelsius < MIN_VALID_TEMP || tempCelsius > MAX_VALID_TEMP) {
-        Serial.println("Ignored out-of-range temperature reading.");
-        return; // Ignore this loop
+        Serial.println("Invalid temperature reading. Skipping control logic.");
+        return;
     }
 
     Serial.print("Current temperature: ");
@@ -241,8 +241,8 @@ void updateTempControl() {
 
     // Detect latch transition from false to true and send alert ONCE
     if (!lastLatch && shutdownLatch && !alertSent) {
-        extern float getDisplayTemperature();
-        sendTestEmail(getDisplayTemperature());
+        // Always pass raw Celsius to sendTestEmail to avoid double conversion
+        sendTestEmail(tempCelsius);
         alertSent = true;
     }
     if (!shutdownLatch) {

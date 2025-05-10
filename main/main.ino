@@ -27,7 +27,7 @@ const char* ssid = "Toucan Dream 1";
 const char* password = "Poolisnext22";
 
 // Static IP configuration - update these values according to your network
-IPAddress local_IP(192, 168, 1, 90); // Use different IP than temp controller
+IPAddress local_IP(192, 168, 1, 74); // Use different IP than temp controller
 IPAddress gateway(192, 168, 1, 1);
 IPAddress subnet(255, 255, 255, 0);
 IPAddress primaryDNS(8, 8, 8, 8);
@@ -51,6 +51,7 @@ void sendTestEmail(float tempC) {
   message.sender.email = AUTHOR_EMAIL;
   message.subject = "ESP32 High Temp Alert";
   message.addRecipient("Chris", RECIPIENT_EMAIL);
+  message.addRecipient("Robin", "robinjoblair@gmail.com"); // Added second recipient
   String body = "This is an alert from your ESP32 pool controller.";
   if (!isnan(tempC)) {
     extern bool useFahrenheit;
