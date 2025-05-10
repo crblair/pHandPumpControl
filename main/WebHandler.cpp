@@ -17,7 +17,7 @@ void handleUpdate();
 void handleDoUpdate();
 
 // Define firmware version directly in WebHandler.cpp
-const char* firmwareVersion = "1.5.7"; // Hardcoded version
+const char* firmwareVersion = "1.7.0"; // Hardcoded version
 
 // Define a reasonable default size for firmware updates instead of using external variable
 const size_t FIRMWARE_MAX_SIZE = 1024 * 1024; // 1MB should be sufficient for most ESP32 firmware
