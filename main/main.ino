@@ -9,9 +9,11 @@
 #include "PreferencesManager.h"
 #include "TempControl.h"
 #include "HighTempEventStorage.h"
+#include "HighTempEventLogger.h"
 
 // Externs for OCP event system
 extern HighTempEventStorage highTempEventStorage;
+extern HighTempEventLogger highTempEventLogger;
 extern void registerHighTempEventHandler(IHighTempEventHandler* handler);
 
 // Reference the firmware version defined in WebHandler.cpp
@@ -53,6 +55,8 @@ void setup() {
 
   // Register high temperature event storage as handler (OCP)
   registerHighTempEventHandler(&highTempEventStorage);
+  // Register logger handler for LSP demonstration
+  registerHighTempEventHandler(&highTempEventLogger);
   
   // Initialize sensors
   initSensors();

@@ -42,11 +42,13 @@ time_t highTempEventStart = 0;
 #include "HighTempEvent.h"
 #include "HighTempEventStorage.h"
 #include "IHighTempEventHandler.h"
+#include "HighTempEventLogger.h"
 
 HighTempEvent highTempEvents[HighTempEventStorage::MAX_EVENTS];
 int highTempEventIdx = 0;
 int highTempEventCount = 0;
 HighTempEventStorage highTempEventStorage;
+HighTempEventLogger highTempEventLogger;
 
 // OCP: Handler registration
 #define MAX_HIGH_TEMP_HANDLERS 4
