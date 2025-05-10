@@ -1,3 +1,4 @@
+#include "HighTempEvent.h"
 #include "HighTempEventStorage.h"
 #include "PreferencesManager.h"
 
@@ -15,6 +16,11 @@ void HighTempEventStorage::save(const HighTempEvent* events, int count) {
     saveInt("highTempEventCount", count);
 }
 
+void HighTempEventStorage::onHighTempEvent(const HighTempEvent& event) {
+    // TODO: In a full system, this would append the event to a buffer and call save().
+    // For demonstration, just save this single event as the only entry.
+    save(&event, 1);
+}
 int HighTempEventStorage::load(HighTempEvent* events, int maxCount) {
     int validCount = 0;
     for (int i = 0; i < MAX_EVENTS && i < maxCount; ++i) {

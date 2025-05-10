@@ -39,11 +39,25 @@ bool highTempStreakActive = false;
 time_t highTempEventStart = 0;
 
 // --- High Temperature Event Logging ---
+#include "HighTempEvent.h"
 #include "HighTempEventStorage.h"
+#include "IHighTempEventHandler.h"
+
 HighTempEvent highTempEvents[HighTempEventStorage::MAX_EVENTS];
 int highTempEventIdx = 0;
 int highTempEventCount = 0;
 HighTempEventStorage highTempEventStorage;
+
+// OCP: Handler registration
+#define MAX_HIGH_TEMP_HANDLERS 4
+IHighTempEventHandler* highTempEventHandlers[MAX_HIGH_TEMP_HANDLERS];
+int highTempEventHandlerCount = 0;
+
+void registerHighTempEventHandler(IHighTempEventHandler* handler) {
+    if (highTempEventHandlerCount < MAX_HIGH_TEMP_HANDLERS) {
+        highTempEventHandlers[highTempEventHandlerCount++] = handler;
+    }
+}
 
 // Save high temp events to NVS (Preferences)
 void saveHighTempEvents() {
@@ -57,11 +71,18 @@ void loadHighTempEvents() {
 }
 // Log a new high temperature event
 void logHighTempEvent(float temp, time_t t) {
-    highTempEvents[highTempEventIdx].tempCelsius = temp;
-    highTempEvents[highTempEventIdx].eventTime = t;
+    HighTempEvent event;
+    event.tempCelsius = temp;
+    event.eventTime = t;
+    highTempEvents[highTempEventIdx] = event;
     highTempEventIdx = (highTempEventIdx + 1) % HighTempEventStorage::MAX_EVENTS;
     if (highTempEventCount < HighTempEventStorage::MAX_EVENTS) highTempEventCount++;
-    saveHighTempEvents();
+    // Notify all registered handlers
+    for (int i = 0; i < highTempEventHandlerCount; ++i) {
+        if (highTempEventHandlers[i]) {
+            highTempEventHandlers[i]->onHighTempEvent(event);
+        }
+    }
 }
 
 // Get the number of logged high temp events (max 3)
