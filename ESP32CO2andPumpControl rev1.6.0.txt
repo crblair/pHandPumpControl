@@ -1,0 +1,15 @@
+CO2andPumpControl rev1.5.2
+
+This version includes:
+*	Initial conversion to modular structure
+*	Fully functional CO2 control and pump high temp shut down
+*	Injection control manual and set at two different user selected times
+*	Injection manual series and clock set time both tested and functional
+*	Temp shutdown logic fixed. Previous versions did not send pin 5 high.
+*	This is the first version with fully functional CO2 injection and High Temp shut down capability
+*	Both pages refresh every 4 seconds and input not lost during refresh but will continue if input is not completed
+*	Logic for shutdown, latch and manual reset fully tested
+*	Wire pin 5 to close the pump relay so any failure results in safe condition (pump power interrupted)
+*	Added wifi reconnect in event of power outage or wifi disruption
+*	Modified voltage divider for thermistor connect to VCC and resistor to GND plus left commented formula for inverted voltage divider
+
