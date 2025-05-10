@@ -53,9 +53,18 @@ void sendTestEmail(float tempC) {
   message.addRecipient("Chris", RECIPIENT_EMAIL);
   String body = "This is an alert from your ESP32 pool controller.";
   if (!isnan(tempC)) {
+    extern bool useFahrenheit;
+    float displayTemp = tempC;
+    String unit = "°C";
+    if (useFahrenheit) {
+      displayTemp = tempC * 9.0 / 5.0 + 32.0;
+      unit = "°F";
+    }
     body += "\n\nHigh temperature detected: ";
-    body += String(tempC, 2);
-    body += " °C.";
+    body += String(displayTemp, 2);
+    body += " ";
+    body += unit;
+    body += ".";
   }
   message.text.content = body;
   message.text.charSet = "us-ascii";

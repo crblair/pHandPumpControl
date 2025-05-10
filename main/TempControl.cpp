@@ -86,8 +86,9 @@ void logHighTempEvent(float temp, time_t t) {
             highTempEventHandlers[i]->onHighTempEvent(event);
         }
     }
-    // Send email alert for high temp event
-    sendTestEmail(temp);
+    // Send email alert for high temp event (in display units)
+    extern float getDisplayTemperature();
+    sendTestEmail(getDisplayTemperature());
 }
 
 // Get the number of logged high temp events (max 3)

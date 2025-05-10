@@ -17,7 +17,7 @@ void handleUpdate();
 void handleDoUpdate();
 
 // Define firmware version directly in WebHandler.cpp
-const char* firmwareVersion = "1.7.0"; // Hardcoded version
+const char* firmwareVersion = "1.7.1"; // Hardcoded version
 
 // Define a reasonable default size for firmware updates instead of using external variable
 const size_t FIRMWARE_MAX_SIZE = 1024 * 1024; // 1MB should be sufficient for most ESP32 firmware
@@ -550,6 +550,12 @@ page += "</script>";
       float temp;
       time_t t;
       if (getHighTempEvent(i, &temp, &t)) {
+        float htmlTemp = temp;
+        String htmlUnit = "&deg;C";
+        if (useFahrenheit) {
+          htmlTemp = temp * 9.0 / 5.0 + 32.0;
+          htmlUnit = "&deg;F";
+        }
         char timeStr[32] = "";
         if (t > 8 * 3600) {
           struct tm timeinfo;
@@ -558,9 +564,8 @@ page += "</script>";
         } else {
           strncpy(timeStr, "Time not set", sizeof(timeStr));
         }
-        page += "<li style='margin-bottom:5px;'>";
-        page += String(temp, 2) + " " + unitSymbol + " at <span style='color:#b57d00;'>" + String(timeStr) + "</span>";
-        page += "</li>";
+        page += "<li style='margin-bottom:2px;'>";
+        page += String(htmlTemp, 2) + " " + htmlUnit + " at " + String(timeStr) + "</li>";
       }
     }
     page += "</ul></div>";
