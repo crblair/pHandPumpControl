@@ -557,12 +557,12 @@ page += "</script>";
           htmlUnit = "&deg;F";
         }
         char timeStr[32] = "";
-        if (t > 8 * 3600) {
+        if (t > 1577836800) { // Jan 1, 2020 UTC
           struct tm timeinfo;
           localtime_r(&t, &timeinfo);
           strftime(timeStr, sizeof(timeStr), "%b %d, %I:%M:%S %p", &timeinfo);
         } else {
-          strncpy(timeStr, "Time not set", sizeof(timeStr));
+          strncpy(timeStr, "N/A", sizeof(timeStr));
         }
         page += "<li style='margin-bottom:2px;'>";
         page += String(htmlTemp, 2) + " " + htmlUnit + " at " + String(timeStr) + "</li>";

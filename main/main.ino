@@ -152,13 +152,22 @@ void setup() {
   Serial.println(WiFi.localIP());
   
   // Configure time
-// Sync NTP as UTC, then apply our TZ/DST rules
-configTime(0, 0, ntpServer);
-setenv("TZ", tzName.c_str(), 1);
-tzset();
-Serial.printf("Time zone set to %s\n", tzName.c_str());
+  // Sync NTP as UTC, then apply our TZ/DST rules
+  configTime(0, 0, ntpServer);
+  setenv("TZ", tzName.c_str(), 1);
+  tzset();
+  Serial.printf("Time zone set to %s\n", tzName.c_str());
 
-  
+  // Wait for NTP time to be set (after Jan 1, 2020)
+  time_t now = time(nullptr);
+  Serial.print("Waiting for NTP time sync");
+  while (now < 1577836800) { // Jan 1, 2020 UTC
+    delay(100);
+    now = time(nullptr);
+    Serial.print(".");
+  }
+  Serial.println("\nTime synchronized!");
+
   // Setup web server routes for both systems
   setupWebHandlers(server);
   
