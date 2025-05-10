@@ -86,9 +86,7 @@ void logHighTempEvent(float temp, time_t t) {
             highTempEventHandlers[i]->onHighTempEvent(event);
         }
     }
-    // Send email alert for high temp event (in display units)
-    extern float getDisplayTemperature();
-    sendTestEmail(getDisplayTemperature());
+    // No email logic here; web display and logging are unchanged
 }
 
 // Get the number of logged high temp events (max 3)
@@ -223,55 +221,68 @@ void updateTempControl() {
     const float MAX_VALID_TEMP = 60.0;   // Maximum reasonable pool temp (°C)
     const int REQUIRED_HIGH_READINGS = 60; // 3 seconds at 20Hz
     static int highTempCounter = 0;
+    static bool alertSent = false;
+    static bool lastLatch = false;
 
-  float tempCelsius = readTemperature();
+    float tempCelsius = readTemperature();
 
-  // Only consider valid temperature readings
-  if (tempCelsius < MIN_VALID_TEMP || tempCelsius > MAX_VALID_TEMP) {
-    Serial.println("Ignored out-of-range temperature reading.");
-    return; // Ignore this loop
-  }
-
-  Serial.print("Current temperature: ");
-  Serial.print(tempCelsius);
-  Serial.print("°C, Threshold: ");
-  Serial.print(thresholdTemperature);
-  Serial.print("°C, ShutdownLatch: ");
-  Serial.println(shutdownLatch ? "ACTIVE" : "INACTIVE");
-
-  if (shutdownLatch) {
-    digitalWrite(relayPin, LOW);
-    Serial.println("Shutdown latch is active. Pump is OFF.");
-    highTempCounter = 0;
-    highTempStreakActive = false;
-    highTempEventStart = 0;
-  } else if (tempCelsius >= thresholdTemperature) {
-    // Log a high temp event every time a reading exceeds the threshold
-    logHighTempEvent(tempCelsius, time(nullptr));
-    if (highTempCounter == 0) {
-      highTempEventStart = time(nullptr); // Record the start time of the event
-      highTempStreakActive = true;
+    // Only consider valid temperature readings
+    if (tempCelsius < MIN_VALID_TEMP || tempCelsius > MAX_VALID_TEMP) {
+        Serial.println("Ignored out-of-range temperature reading.");
+        return; // Ignore this loop
     }
-    highTempCounter++;
-    if (highTempCounter >= REQUIRED_HIGH_READINGS) {
-      Serial.println("High temperature detected for 3 seconds! Activating shutdown latch.");
-      shutdownLatch = true;
-      digitalWrite(relayPin, LOW);
-      highTempStreakActive = false;
-      highTempEventStart = 0;
+
+    Serial.print("Current temperature: ");
+    Serial.print(tempCelsius);
+    Serial.print("°C, Threshold: ");
+    Serial.print(thresholdTemperature);
+    Serial.print("°C, ShutdownLatch: ");
+    Serial.println(shutdownLatch ? "ACTIVE" : "INACTIVE");
+
+    // Detect latch transition from false to true and send alert ONCE
+    if (!lastLatch && shutdownLatch && !alertSent) {
+        extern float getDisplayTemperature();
+        sendTestEmail(getDisplayTemperature());
+        alertSent = true;
     }
-  } else {
-    highTempCounter = 0; // Reset counter if temp drops below threshold
-    highTempStreakActive = false;
-    highTempEventStart = 0;
-    digitalWrite(relayPin, HIGH);
-    Serial.println("Temperature is safe. Pump is ON.");
-  }
+    if (!shutdownLatch) {
+        alertSent = false;
+    }
+    lastLatch = shutdownLatch;
 
-  Serial.print("Relay pin state: ");
-  Serial.println(digitalRead(relayPin) ? "HIGH (Pump ON)" : "LOW (Pump OFF)");
+    if (shutdownLatch) {
+        digitalWrite(relayPin, LOW);
+        Serial.println("Shutdown latch is active. Pump is OFF.");
+        highTempCounter = 0;
+        highTempStreakActive = false;
+        highTempEventStart = 0;
+    } else if (tempCelsius >= thresholdTemperature) {
+        // Log a high temp event every time a reading exceeds the threshold (do NOT change this)
+        logHighTempEvent(tempCelsius, time(nullptr));
+        if (highTempCounter == 0) {
+            highTempEventStart = time(nullptr); // Record the start time of the event
+            highTempStreakActive = true;
+        }
+        highTempCounter++;
+        if (highTempCounter >= REQUIRED_HIGH_READINGS) {
+            Serial.println("High temperature detected for 3 seconds! Activating shutdown latch.");
+            shutdownLatch = true;
+            digitalWrite(relayPin, LOW);
+            highTempStreakActive = false;
+            highTempEventStart = 0;
+        }
+    } else {
+        highTempCounter = 0; // Reset counter if temp drops below threshold
+        highTempStreakActive = false;
+        highTempEventStart = 0;
+        digitalWrite(relayPin, HIGH);
+        Serial.println("Temperature is safe. Pump is ON.");
+    }
 
-  checkForManualReset();
+    Serial.print("Relay pin state: ");
+    Serial.println(digitalRead(relayPin) ? "HIGH (Pump ON)" : "LOW (Pump OFF)");
+
+    checkForManualReset();
 }
 
 // Getter for high temp streak active
