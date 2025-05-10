@@ -43,6 +43,7 @@ time_t highTempEventStart = 0;
 #include "HighTempEventStorage.h"
 #include "IHighTempEventHandler.h"
 #include "HighTempEventLogger.h"
+#include "EmailAlert.h"
 
 HighTempEvent highTempEvents[HighTempEventStorage::MAX_EVENTS];
 int highTempEventIdx = 0;
@@ -85,6 +86,8 @@ void logHighTempEvent(float temp, time_t t) {
             highTempEventHandlers[i]->onHighTempEvent(event);
         }
     }
+    // Send email alert for high temp event
+    sendTestEmail(temp);
 }
 
 // Get the number of logged high temp events (max 3)

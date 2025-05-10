@@ -1,7 +1,9 @@
 #include <WiFi.h>
 #include <WebServer.h>
 #include <time.h>
+#include <ESP_Mail_Client.h> // <-- Added for email alerts
 #include "Sensors.h"
+#include "EmailAlert.h" // <-- Added for email alert prototype
 
 
 #include "InjectionControl.h"
@@ -33,6 +35,56 @@ IPAddress secondaryDNS(8, 8, 4, 4);
 
 // Time server settings
 const char* ntpServer = "pool.ntp.org";
+
+// --- Email Alert Configuration ---
+#define SMTP_HOST "smtp.gmail.com"
+#define SMTP_PORT 465
+#define AUTHOR_EMAIL "CRBAlarms@gmail.com"
+#define AUTHOR_PASSWORD "pkgronzjahtrlqtw"
+#define RECIPIENT_EMAIL "chrisblair@blairpage.com"
+SMTPSession smtp;
+
+// Function to send a test/alert email (can be customized)
+void sendTestEmail(float tempC) {
+  SMTP_Message message;
+  message.sender.name = "ESP32 Pool Alert";
+  message.sender.email = AUTHOR_EMAIL;
+  message.subject = "ESP32 High Temp Alert";
+  message.addRecipient("Chris", RECIPIENT_EMAIL);
+  String body = "This is an alert from your ESP32 pool controller.";
+  if (!isnan(tempC)) {
+    body += "\n\nHigh temperature detected: ";
+    body += String(tempC, 2);
+    body += " °C.";
+  }
+  message.text.content = body;
+  message.text.charSet = "us-ascii";
+  message.text.transfer_encoding = Content_Transfer_Encoding::enc_7bit;
+
+  // Set the SMTP server and login credentials
+  smtp.callback([](SMTP_Status status){
+    Serial.println(status.info());
+  });
+  ESP_Mail_Session session;
+  session.server.host_name = SMTP_HOST;
+  session.server.port = SMTP_PORT;
+  session.login.email = AUTHOR_EMAIL;
+  session.login.password = AUTHOR_PASSWORD;
+  session.login.user_domain = "";
+
+  Serial.println("Sending email alert...");
+  if (!smtp.connect(&session)) {
+    Serial.println("Could not connect to SMTP server");
+    return;
+  }
+  if (!MailClient.sendMail(&smtp, &message, true)) {
+    Serial.print("Error sending Email, ");
+    Serial.println(smtp.errorReason());
+  } else {
+    Serial.println("Email sent successfully!");
+  }
+  smtp.closeSession();
+}
 
 // Variables for WiFi reconnection logic
 unsigned long previousMillis = 0;
@@ -105,6 +157,8 @@ Serial.printf("Time zone set to %s\n", tzName.c_str());
   server.begin();
   Serial.println("Web server started");
 }
+// --- End of setup() ---
+
 
 // Main loop
 void loop() {
